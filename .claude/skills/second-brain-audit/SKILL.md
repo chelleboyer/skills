@@ -94,11 +94,15 @@ Skip it otherwise; phase 2 already did the work.
 
 ```bash
 python <skill>/scripts/audit.py <notes-dir> \
-    --always-loaded MEMORY.md --always-loaded CLAUDE.md
+    --always-loaded MEMORY.md --always-loaded CLAUDE.md \
+    --subject rate --subject <one word per subject that matters>
 ```
 
-Pass `--subject "Acme Corp"` to track named subjects by name, and `--json` for
-structured output. The script only reads; it never writes.
+Pass `--subject` for every subject you care about, one word each (`rate`, not
+`"Hourly rate"`), and `--json` for structured output. On a small folder the script
+attributes values by page name and bold key only, so without `--subject` a real
+cross-file contradiction can come back as a clean zero with no warning. The script
+counts; phase 2 is the audit. It only reads; it never writes.
 
 **A zero is not a clean bill of health.** Values are the only thing it can compare
 without guessing, so notes with no money in them are largely invisible to it. It
@@ -138,6 +142,11 @@ common case where it is *diligent and still wrong*: it checks a page, warns that
 another file looks stale, and still misses the true value because that value was
 never promoted anywhere durable.
 
+On a small folder a capable agent will read everything and find the truth. Confine
+the demonstration to what the agent is actually handed every session (paste the
+always-loaded file alone, or run with read tools off) and ask again. The gap between
+the two answers is the finding.
+
 ## Phase 6: fix one place
 
 Never bulk-convert, and never convert a page the user did not agree to. Fix the
@@ -145,7 +154,10 @@ single worst *location*, which depends on the shape found in phase 1:
 
 - **Page per subject** → give that one page the two sections below.
 - **One big file** → add a `## Current State` block at the top and leave everything
-  else beneath it. No new files, no folder structure.
+  else beneath it. No new files, no folder structure. If the file already has a block
+  that claims to be current ("Current status", "Now", "Active"), its lines move into
+  the new block or into the Log by rule 2. Two sections claiming now is the bug you
+  are removing, so never leave the old block in place.
 - **Daily notes only** → create **one** file holding current values, and leave every
   journal entry untouched. The journal was already correct.
 - **Not markdown** → do not restructure anything. Explain where the current value
@@ -214,7 +226,10 @@ Then state the honest part: this instruction gets followed most of the time, not
 of the time. Anything that must happen every time needs a mechanism. Two cheap ones
 worth more than the instruction:
 
-- Re-run this audit on a schedule and watch whether the count climbs.
+- Re-run this audit on a schedule and watch whether the count climbs. The count to
+  watch is the contradicted pile from phase 2. The script's totals can rise after a
+  correct fix, because Current State lines that say "paid" or "complete" match its
+  open-list regex.
 - Stamp dates with a script after the fact instead of asking for them.
 
 ## Set expectations honestly
