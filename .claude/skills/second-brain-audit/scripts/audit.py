@@ -43,11 +43,17 @@ MONEY = re.compile(r"\$\s?\d(?:[\d,]*\d)?(?:\.\d+)?\s*k?(?:\s*/\s*(?:mo|month|yr
 RECURRING = re.compile(r"/\s*(?:mo|month|yr|year|hr|hour)", re.I)
 
 
-def money_value(raw: str) -> tuple[float, bool] | None:
-    """Canonical (amount, is_recurring). '$22k' and '$22,000' are one value.
+UNIT = {"mo": "/mo", "month": "/mo", "yr": "/yr", "year": "/yr", "hr": "/hr", "hour": "/hr"}
+
+
+def money_value(raw: str) -> tuple[float, str] | None:
+    """Canonical (amount, unit). '$22k' and '$22,000' are one value; unit is
+    '' for a one-time sum or the normalised period ('/mo', '/yr', '/hr').
 
     Without this the audit reports a contradiction between two spellings of the
-    same number, which is the fastest way to teach someone to ignore it.
+    same number, which is the fastest way to teach someone to ignore it. Keeping
+    the real unit matters too: an hourly rate printed as '/mo' is a wrong answer
+    dressed as a finding.
     """
     m = re.match(r"\$\s?([\d,]*\d)(\.\d+)?\s*(k?)", raw, re.I)
     if not m:
@@ -55,12 +61,14 @@ def money_value(raw: str) -> tuple[float, bool] | None:
     amount = float(m.group(1).replace(",", "") + (m.group(2) or ""))
     if m.group(3).lower() == "k":
         amount *= 1000
-    return amount, bool(RECURRING.search(raw))
+    u = RECURRING.search(raw)
+    unit = UNIT.get(u.group(0).strip("/ ").lower(), "") if u else ""
+    return amount, unit
 
 
-def fmt_money(amount: float, recurring: bool) -> str:
+def fmt_money(amount: float, unit: str) -> str:
     s = f"${amount:,.0f}" if amount == int(amount) else f"${amount:,.2f}"
-    return s + ("/mo" if recurring else "")
+    return s + unit
 STATUS = re.compile(
     r"\b(active|paused|cancell?ed|churned|shipped|launched|live|signed|closed|"
     r"won|lost|on hold|in progress|completed?|delivered|paid|pending|blocked)\b", re.I)
@@ -239,7 +247,7 @@ def contradictions(subjects: dict, min_files: int = 2) -> list[dict]:
 
         # Compare like with like: recurring rates and one-time amounts are
         # different facts, not two versions of the same one.
-        for bucket in (True, False):          # recurring rates, then one-time sums
+        for bucket in ("/mo", "/yr", "/hr", ""):   # each rate unit, then one-time sums
             vals: dict[str, list] = {}
             for h in uniq:
                 for v in h["money"]:
