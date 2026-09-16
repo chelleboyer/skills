@@ -133,6 +133,15 @@ Open a few flagged pages and look for what no regex will catch:
 - **Pages that must not be touched.** Checklists, reference lists, packing lists.
   They are lists on purpose. Converting one destroys what makes it useful, and every
   structural check still passes.
+- **Two true lines, one impossible schedule.** Each Current State line is checked
+  against its own subject; nothing checks two lines against each other. Two
+  deliverables "live 9/23" on two keys is either a real conflict or a shared host
+  video, and the lines should say which. Grep the block for repeated dates.
+- **A fresh date on a value nobody checked.** A rewrite that re-dates lines it merely
+  moved, or a "rows verified today" note over a table seeded months ago, gives stale
+  values the one thing that would have exposed them. Check what `git blame` says
+  about a freshly dated line before trusting the date; a date is a claim that the
+  value was verified, not a stamp that the line was touched.
 - **Key sprawl.** One subject spread across many Current State keys ("Brief 10050
   draft", "Brief 10050 review pass", "Brief 10050 record day"). Every key is unique,
   so the duplicate check passes, and the freshest of them can still be stale. The
@@ -206,7 +215,9 @@ Conversion rules, in order of importance:
    current value, the newer wins and the older moves to the Log. Where the order is
    unclear, ask. Never guess.
 3. **Date every Current State entry.** Ask for a missing date or take it from file
-   history. An undated current value is barely better than a stale one.
+   history. An undated current value is barely better than a stale one. The date on a
+   line you moved is the line's own date, never today's: dating is a claim that the
+   value was checked, and a move checks nothing.
 4. **Never merge two subjects that merely look similar.** "Acme (May)" and "Acme Corp
    renewal" may be genuinely different things. A duplicate entry is a cheap mistake;
    a wrong merge destroys information. Report near-misses and let the user decide.
@@ -246,6 +257,9 @@ worth more than the instruction:
   correct fix, because Current State lines that say "paid" or "complete" match its
   open-list regex.
 - Stamp dates with a script after the fact instead of asking for them.
+- Regenerate any column that can be regenerated (a repo's visibility from the forge,
+  a version from the package file) instead of typing it. A value nobody checks is
+  wrong within a quarter, and a check is cheaper than the audit that finds it.
 
 ## Set expectations honestly
 
