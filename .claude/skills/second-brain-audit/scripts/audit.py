@@ -91,6 +91,16 @@ FENCE = re.compile(r"^\s*```")
 SCHEMA_STATE = re.compile(r"^##\s+Current State\b", re.M | re.I)
 SCHEMA_LOG = re.compile(r"^##\s+Log\b", re.M | re.I)
 
+# A bolded lead that is an ACTION, not a subject. Heartbeat and session logs open bullets
+# with these ("**Drafted 2 replies**", "**Meeting in 15min**"), and on a real vault they
+# clustered every dollar amount in the daily logs under a verb instead of under the deal.
+GENERIC_LEAD = re.compile(
+    r"^(drafted|sent|replied|reviewed|created|updated|checked|posted|scheduled|completed|"
+    r"meeting|reminder|heartbeat|summary|session|due|new|urgent|note|todo|error|warning|"
+    r"\d+\s+(new\s+)?(reply|replies|emails?|tasks?|messages?|items?))\b",
+    re.I,
+)
+
 # Pages that are indexes or config, not per-subject pages.
 NOT_A_SUBJECT = {"index", "readme", "memory", "claude", "soul", "user", "schema",
                  "heartbeat", "repositories", "core-memories", "todo", "inbox"}
@@ -146,8 +156,10 @@ def scan(root: Path, extra: list[str]):
         subj = page_subject(p.stem)
         if subj and len(subj) >= 4:
             vocab[subj] = p.stem
+    named: set[str] = set()
     for t in extra:
         vocab[norm(t)] = t
+        named.add(norm(t))
 
     subjects: dict[str, list] = defaultdict(list)
     money_seen = 0
@@ -182,6 +194,10 @@ def scan(root: Path, extra: list[str]):
             if line.startswith("#"):
                 under_open = bool(OPEN_HEADING.match(line))
                 under_log = bool(LOG_HEADING.match(line))
+                # A `## Current State` section holds values, not to-dos. "PAID" there is
+                # a state, not a finished item forgotten in an open list.
+                if SCHEMA_STATE.match(line):
+                    under_open = False
                 continue
             if not BULLET.match(line):
                 continue
@@ -207,7 +223,7 @@ def scan(root: Path, extra: list[str]):
 
             keys = set()
             m = KEY.match(line.strip())
-            if m:
+            if m and not GENERIC_LEAD.match(m.group(1).strip()):
                 k = norm(m.group(1))
                 if len(k) >= 4:
                     keys.add(k)
@@ -215,7 +231,9 @@ def scan(root: Path, extra: list[str]):
                 keys.add(own)
             low = " " + norm(line) + " "
             for v in vocab:
-                if f" {v} " in low:
+                # a named --subject matches as a word prefix ("tax" finds "taxes");
+                # a page-derived subject must match whole, or "ai" would match everything.
+                if f" {v} " in low or (v in named and re.search(rf"\b{re.escape(v)}\w*", low)):
                     keys.add(v)
 
             for k in keys:
@@ -313,6 +331,9 @@ def main() -> int:
         return any(h["file"].lower().endswith(al) for al in always)
 
     hot = [c for c in conts if any(in_always(h) for h in c["hits"])]
+    always_money = sum(
+        len(h["money"]) for hits in subjects.values() for h in hits if in_always(h)
+    ) if always else 0
     pct = round(100 * dur_d / dur_b) if dur_b else 0
 
     if a.json:
@@ -372,6 +393,8 @@ def main() -> int:
     print(f"  {len(conts)} subject(s) answered differently in more than one file.")
     if always:
         print(f"  {len(hot)} of those touch a file your agent loads every session. ***")
+        print("  (money only: a status that changed - paid, on hold, cancelled, moved - is")
+        print("   invisible to this count. Phase 2 is the audit of the always-loaded file.)")
     else:
         print("  Re-run with --always-loaded <file> to find which of these your")
         print("  agent reads on every session. Those are the ones that bite.")
@@ -394,6 +417,12 @@ def main() -> int:
     if not vocab:
         blind.append("No per-subject pages found, so values could not be attributed to\n"
                      "    a subject across files. Pass --subject to name them.")
+    if always and not hot and always_money:
+        blind.append(f"The always-loaded file(s) carry {always_money} line(s) with a dollar\n"
+                     "    amount and none matched a flagged subject. Either every value there\n"
+                     "    agrees with the rest of the notes, or the disagreement is a STATUS\n"
+                     "    (paid, on hold, cancelled), which this scan cannot see. Read that file\n"
+                     "    claim by claim (phase 2) before calling it clean.")
     if blind:
         print(f"\n{'-' * W}\n  COVERAGE WARNING: a low count above may mean 'not visible',\n"
               f"  not 'not present'.\n{'-' * W}")

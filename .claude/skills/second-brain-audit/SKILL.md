@@ -67,7 +67,10 @@ Whatever the agent reads on every session is small: that is what makes it always
 loadable. So it can be read in full and checked claim by claim.
 
 1. **Read that surface completely.** The always-loaded file, or the top of the one
-   big file, or the pinned page. All of it.
+   big file, or the pinned page. All of it. Then check it actually arrives in full:
+   hooks and context budgets truncate, usually from the bottom, and a file that is
+   "always loaded" on disk can reach the agent as its oldest third. Audit what
+   arrives, and treat the cut itself as a finding.
 2. **Extract every state-shaped claim.** Anything phrased as a current fact: a
    status, an owner, a rate, a version, a deadline, a "currently", a "we use", a
    "lives at". Ignore anything phrased as an event, since events stay true.
@@ -105,7 +108,10 @@ cross-file contradiction can come back as a clean zero with no warning. The scri
 counts; phase 2 is the audit. It only reads; it never writes.
 
 **A zero is not a clean bill of health.** Values are the only thing it can compare
-without guessing, so notes with no money in them are largely invisible to it. It
+without guessing, so notes with no money in them are largely invisible to it, and so
+is a status that changed while the amount did not ("$32,300 due" versus "$32,300 on
+hold" is the same number). Its "0 touch a file your agent loads" line counts money
+only; the always-loaded file is audited in phase 2, never by this count. It
 prints a COVERAGE WARNING when it knows it was blind. Read that warning out rather
 than reporting "no problems found".
 
@@ -127,6 +133,11 @@ Open a few flagged pages and look for what no regex will catch:
 - **Pages that must not be touched.** Checklists, reference lists, packing lists.
   They are lists on purpose. Converting one destroys what makes it useful, and every
   structural check still passes.
+- **Key sprawl.** One subject spread across many Current State keys ("Brief 10050
+  draft", "Brief 10050 review pass", "Brief 10050 record day"). Every key is unique,
+  so the duplicate check passes, and the freshest of them can still be stale. The
+  reverse of the duplicate-key bug, and the same fix: one key per thing that has
+  one status. Report it; collapsing is the owner's call.
 
 ## Phase 5: report
 
@@ -153,6 +164,10 @@ Never bulk-convert, and never convert a page the user did not agree to. Fix the
 single worst *location*, which depends on the shape found in phase 1:
 
 - **Page per subject** → give that one page the two sections below.
+- **An index the agent loads every session** (a `MEMORY.md`, a pinned summary) → it
+  is state, whatever it calls itself. Put a dated `## Current State` block at the
+  TOP so it survives any truncation, key each line on the deal, and move superseded
+  lines verbatim to a `## Log` at the bottom. Leave the to-do list in between.
 - **One big file** → add a `## Current State` block at the top and leave everything
   else beneath it. No new files, no folder structure. If the file already has a block
   that claims to be current ("Current status", "Now", "Active"), its lines move into
