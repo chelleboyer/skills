@@ -8,10 +8,31 @@ description: Work through the findings from a second-brain audit in batches, cor
 The audit found what is wrong and fixed one location so the shape was visible. This works
 through the rest, in batches, from the file the audit left behind.
 
-**Read `second-brain-audit.md` in the notes folder first.** It is the queue and the ledger:
-one keyed line per location in `## Current State`, one dated line per run in `## Log`. If it
-is not there, stop and run `/second-brain-audit` first. Everything here is driven by that
-file, and a run that does not update it is a run nobody can pick up from.
+## Invoking it
+
+```
+/second-brain-fix                                  # look for the ledger here
+/second-brain-fix ~/notes                          # the notes folder
+/second-brain-fix ~/notes/second-brain-audit.md    # the ledger itself
+```
+
+Resolve the argument before anything else:
+
+| Given | Do |
+|---|---|
+| a path to a **file** | that is the ledger. The notes folder is its parent, unless the ledger names a different one |
+| a path to a **folder** | the ledger is `second-brain-audit.md` inside it |
+| **nothing** | look in the current folder, then one level down |
+| **more than one match** | list them with their newest `## Log` dates and ask which |
+| **no match** | stop. Say to run `/second-brain-audit` first, since there is nothing to work from |
+
+Never invent a queue from scratch when the ledger is missing. Auditing and fixing in one
+pass is how a bulk write happens against findings nobody read.
+
+**The ledger is the input.** `second-brain-audit.md` is the queue and the record:
+one keyed line per location in `## Current State`, one dated line per run in `## Log`.
+Everything below is driven by that file, and a run that does not update it is a run nobody
+can pick up from.
 
 ## This skill writes in bulk. Make it recoverable first.
 

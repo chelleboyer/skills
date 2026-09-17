@@ -312,8 +312,8 @@ Say this out loud at the end, because it is the question every user has and the 
 not "run this again":
 
 > The audit fixed one location so you could see the shape. To work through the rest, run
-> `/second-brain-fix`. It reads this same file, batches the findings, and updates the ledger
-> as it goes.
+> `/second-brain-fix`, or `/second-brain-fix <path to this file>` from anywhere else. It reads
+> this same file, batches the findings, and updates the ledger as it goes.
 
 Fixing one location at a time is correct for this skill and useless as a plan. Nobody runs a
 seven-phase audit forty times. The batch job is a separate skill because it has a different
