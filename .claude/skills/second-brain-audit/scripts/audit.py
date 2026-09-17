@@ -148,7 +148,10 @@ def iter_lines(text: str):
 
 
 def scan(root: Path, extra: list[str]):
-    files = sorted(p for p in root.rglob("*.md") if ".git" not in p.parts)
+    # The skill's own report (phase 8) quotes stale claims verbatim, so a later run
+    # would read them as live values and contradict itself. Skip it by name.
+    files = sorted(p for p in root.rglob("*.md")
+                   if ".git" not in p.parts and not p.name.startswith("second-brain-audit"))
 
     # Pass 1: the subject vocabulary, taken from the names of per-subject pages.
     vocab: dict[str, str] = {}

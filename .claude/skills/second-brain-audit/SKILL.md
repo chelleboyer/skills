@@ -224,7 +224,8 @@ Conversion rules, in order of importance:
 5. **Show a diff and get approval** before writing.
 
 Re-ask the earlier question afterwards so the correct answer is visible. Same notes,
-same agent, one page restructured.
+same agent, one page restructured. Then record what is still outstanding, which is
+phase 8, or the next run starts from nothing.
 
 ## Phase 7: change the write path
 
@@ -252,14 +253,66 @@ Then state the honest part: this instruction gets followed most of the time, not
 of the time. Anything that must happen every time needs a mechanism. Two cheap ones
 worth more than the instruction:
 
-- Re-run this audit on a schedule and watch whether the count climbs. The count to
-  watch is the contradicted pile from phase 2. The script's totals can rise after a
+- Re-run this audit on a schedule and watch whether the count climbs. Phase 8 is what
+  makes that comparison possible. The count to watch is the contradicted pile from phase 2. The script's totals can rise after a
   correct fix, because Current State lines that say "paid" or "complete" match its
   open-list regex.
 - Stamp dates with a script after the fact instead of asking for them.
 - Regenerate any column that can be regenerated (a repo's visibility from the forge,
   a version from the package file) instead of typing it. A value nobody checks is
   wrong within a quarter, and a check is cheaper than the audit that finds it.
+
+## Phase 8: leave the findings somewhere durable
+
+Everything above this point exists only in a conversation. Close the window and the
+audit is gone: the piles, the claims, the locations you did not reach. That is the
+same failure this whole skill is about, committed by the skill itself.
+
+So write it down, in the shape being taught. **One file** in the notes folder, called
+`second-brain-audit.md`:
+
+```markdown
+# Second brain audit
+
+## Current State
+<!-- One entry per location. REPLACED when that location changes. -->
+
+- **MEMORY.md** (2026-09-18): the always-loaded file. 6 contradicted, 3 unsupported.
+  FIXED this run, `## Current State` block added at the top, 9 superseded lines to `## Log`.
+- **clients/acme.md** (2026-09-18): 4 contradicted, all about the retainer. NEXT.
+- **notes/tools.md** (2026-09-18): 2 unsupported, no trail, low value. Leave it.
+- **write path** (2026-09-18): rule added to `CLAUDE.md`.
+
+## Log
+<!-- Append-only. One entry per audit run. -->
+
+- (2026-09-18) First run. 24 claims in the always-loaded file: 13 confirmed,
+  6 contradicted, 5 unsupported. Fixed MEMORY.md. Asked "what do we charge Acme?"
+  before and after, and got $4,000 then $9,500.
+```
+
+Four rules for that file:
+
+1. **Each location is a key.** Fixing it REPLACES its line. Never a second line for
+   one location.
+2. **Each run is one Log entry**, carrying the contradicted count. That count is the
+   number to watch over time. If it climbs, the write path is not holding.
+3. **Keep it out of what loads every session.** It is a work queue, not a fact about
+   the business, and it quotes stale claims verbatim.
+4. **The next run reads it first.** Read the newest `## Current State` entries, then
+   audit, then compare. Whatever is marked NEXT is where phase 6 goes, unless this run
+   turned up something worse.
+
+`audit.py` skips any file whose name starts with `second-brain-audit`, so the report
+never comes back as evidence in a later scan.
+
+### Stop when the surface is clean
+
+There is no version of this where every page gets converted, and chasing that is how
+people quit in week two. The finish line is narrow: **nothing contradicted in what the
+agent loads every session.** An archive full of old pages is not rot, it is history.
+Convert a deeper page only when it has a trail (several entries about one subject over
+time) or when it keeps producing wrong answers.
 
 ## Set expectations honestly
 
