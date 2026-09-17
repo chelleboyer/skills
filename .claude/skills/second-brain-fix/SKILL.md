@@ -1,53 +1,76 @@
 ---
 name: second-brain-fix
-description: Work through the findings from a second-brain audit in batches, correcting stale facts and converting locations onto the state/event schema, driven by the second-brain-audit.md file the audit left behind. Use after running second-brain-audit, when someone wants to fix the rest of their notes rather than one page, when they ask how to take the audit forward, when they have a list of contradicted or unsupported claims to work through, or when a notes folder needs converting in bulk rather than one page at a time.
-argument-hint: "[path-to-second-brain-audit.md-or-notes-folder]"
-arguments: [ledger]
+description: Work through the findings from a second-brain audit in batches, correcting stale facts and converting locations onto the state/event schema, driven by the markdown file of findings the audit left behind. Use after running second-brain-audit, when someone wants to fix the rest of their notes rather than one page, when they ask how to take the audit forward, when they have a list of contradicted or unsupported claims to work through, or when a notes folder needs converting in bulk rather than one page at a time.
+argument-hint: "[path-to-audit-findings.md]"
+arguments: [audit-results]
 ---
 
 # Second Brain Fix
 
 The audit found what is wrong and fixed one location so the shape was visible. This works
-through the rest, in batches, from the file the audit left behind.
+through the rest, in batches, from the findings the audit left behind.
 
 ## The argument
 
-The path this run was invoked with is `$ledger`, and it is optional:
+The findings file this run was invoked with is `$audit-results`, and it is optional:
 
 ```
 /second-brain-fix                                   nothing passed
-/second-brain-fix ~/notes                           a folder
-/second-brain-fix ~/notes/second-brain-audit.md     the file itself
+/second-brain-fix ~/notes                           a folder to look in
+/second-brain-fix ~/notes/second-brain-audit.md     the findings file itself
 ```
+
+`$audit-results` is **a path to one markdown file of findings**. `/second-brain-audit` names
+what it writes `second-brain-audit.md`, so that is usually what you will be handed, but the
+name is not the contract. Any markdown file holding the findings works, and whatever the user
+points at is the one to use.
 
 Resolve it before anything else:
 
 | What you were given | Do |
 |---|---|
-| a path to a **file** | that is the ledger. The notes folder is its parent, unless the ledger names a different one |
-| a path to a **folder** | the ledger is `second-brain-audit.md` inside it |
-| nothing, so the line above still reads `\$ledger` | look in the current folder, then one level down |
+| a path to a **file** | that is the findings. The notes folder is its parent, unless the file names a different one |
+| a path to a **folder** | look inside it for the findings, `second-brain-audit.md` first |
+| nothing, so the line above still reads `\$audit-results` | look in the current folder, then one level down |
 | **a path that does not exist** | say so and stop. Do not fall back to searching, or a typo silently works on the wrong folder |
-| **more than one match** when searching | list them with their newest `## Log` dates and ask which |
-| **no match** when searching | stop. Say to run `/second-brain-audit` first, since there is nothing to work from |
+| **more than one candidate** when searching | list them with their newest `## Log` dates and ask which |
+| **no candidate** when searching | stop. Say to run `/second-brain-audit` first, since there is nothing to work from |
 
-Never invent a queue from scratch when the ledger is missing. Auditing and fixing in one
-pass is how a bulk write happens against findings nobody read.
+Never invent a queue from scratch when there are no findings. Auditing and fixing in one pass
+is how a bulk write happens against findings nobody read.
 
-**The ledger is the input.** `second-brain-audit.md` is the queue and the record:
-one keyed line per location in `## Current State`, one dated line per run in `## Log`.
-Everything below is driven by that file, and a run that does not update it is a run nobody
-can pick up from.
+**The findings are the input.** `$audit-results` is both the queue and the record: one keyed
+line per location in `## Current State`, one dated line per run in `## Log`. Everything below
+is driven by that file, and a run that does not update it is a run nobody can pick up from.
 
-## This skill writes in bulk. Make it recoverable first.
+## This skill writes in bulk. Settle backups before it does.
 
-Before touching a single file:
+Never start writing without settling this, and never resolve it by copying the notes folder
+somewhere else. A duplicate folder of notes is a second answer to every question, which is the
+exact problem this skill exists to remove.
 
-- **Notes in git?** `git checkout -b second-brain-fix`. Commit after every batch.
-- **Not in git?** Copy the whole folder somewhere else and say you did.
+**First, check what is already there.** Run `git rev-parse --show-toplevel` in the notes folder.
 
-Do not skip this and do not offer to skip it. The audit fixed one page behind a diff the user
-approved. This one changes many, and "undo" has to mean something.
+- **Already in git**, either its own repo or tracked by a parent one. Commit or stash anything
+  outstanding, then `git checkout -b second-brain-fix`, and commit after every batch. Say which
+  repo you are in, because a vault nested inside another project is common and the user should
+  know what the branch covers.
+- **Not in git.** Ask, in these words or close to them:
+
+  > Your notes are not in git, so there is no way to undo a batch. Want me to run `git init`
+  > here first? It stays on your machine, nothing gets pushed anywhere, and every batch becomes
+  > a checkpoint you can roll back to.
+
+  If they agree: `git init`, `git add -A`, one baseline commit, then the branch. Never add a
+  remote and never push.
+
+  If they decline, ask once more and take the answer:
+
+  > Understood. To be clear, this rewrites many files at once and there will be no way to undo
+  > it. Go ahead anyway?
+
+  On a clear yes, proceed and do not raise it again. On silence or anything ambiguous, stop. An
+  unanswered question is not permission.
 
 ## The three piles are three different jobs
 
@@ -76,9 +99,9 @@ the write path, because at that size nobody is ever going to hand-tend the archi
 
 ## Step 1: build the batch list
 
-Read `second-brain-audit.md`. Take the `## Current State` entries that are not marked as
-fixed, plus any pile the audit reported but did not enumerate. Group them into batches of
-roughly 5 to 15 locations, keeping a folder together where you can.
+Read `$audit-results`. Take the `## Current State` entries that are not marked as fixed, plus
+any pile the audit reported but did not enumerate. Group them into batches of roughly 5 to 15
+locations, keeping a folder together where you can.
 
 Show the user the batch list and the order before writing anything. Ordering is always:
 
@@ -152,16 +175,16 @@ For each, three outcomes:
 If the user does not answer, leave every one of them exactly as it is. An unanswered question is
 not permission.
 
-## Step 5: update the ledger
+## Step 5: write the results back
 
-After each batch, edit `second-brain-audit.md`:
+After each batch, edit `$audit-results`:
 
 - **Replace** each location's `## Current State` line with its new status. One line per
   location, always. Never a second line.
 - **Append** one entry to `## Log`: the date, which batch, how many lines replaced, how many
   locations converted, and how many unsupported claims are still unanswered.
 
-Then commit the batch. The ledger and the notes move together, so an interrupted run is
+Then commit the batch. The findings and the notes move together, so an interrupted run is
 resumable by reading one file.
 
 ## Step 6: re-audit and compare
@@ -172,6 +195,10 @@ to the last `## Log` line. That number is the only evidence any of this worked.
 If the count did not move much, say so and say why rather than presenting the conversion as a
 result. Restructuring cannot reach a fact nobody ever wrote down, and when the count stays flat
 that is usually what happened. The fix then is the write path, not another batch.
+
+Flag one thing if the findings file has been renamed: `audit.py` skips files whose name starts
+with `second-brain-audit`, so a renamed one gets read as evidence on the next scan, and it
+quotes stale claims verbatim. Either keep that name or keep the file outside the notes folder.
 
 ## Rules that never bend
 
@@ -184,7 +211,8 @@ that is usually what happened. The fix then is the write path, not another batch
 3. **Never invent a value**, and never delete a claim to make a pile smaller.
 4. **Never edit or delete a `## Log` entry.** Old and superseded is the point of that section.
 5. **A date is a claim that the value was checked.** A line you only moved keeps its own date.
-6. **Stop when the always-loaded surface has nothing contradicted.** An archive full of old
+6. **Never copy the notes folder as a backup.** Git, or an informed no. Nothing else.
+7. **Stop when the always-loaded surface has nothing contradicted.** An archive full of old
    pages is history, not rot. There is no version of this where every page gets converted.
 
 ## If the write path has not changed yet
