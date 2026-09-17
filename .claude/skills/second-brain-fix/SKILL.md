@@ -1,6 +1,8 @@
 ---
 name: second-brain-fix
 description: Work through the findings from a second-brain audit in batches, correcting stale facts and converting locations onto the state/event schema, driven by the second-brain-audit.md file the audit left behind. Use after running second-brain-audit, when someone wants to fix the rest of their notes rather than one page, when they ask how to take the audit forward, when they have a list of contradicted or unsupported claims to work through, or when a notes folder needs converting in bulk rather than one page at a time.
+argument-hint: "[path-to-second-brain-audit.md-or-notes-folder]"
+arguments: [ledger]
 ---
 
 # Second Brain Fix
@@ -8,23 +10,26 @@ description: Work through the findings from a second-brain audit in batches, cor
 The audit found what is wrong and fixed one location so the shape was visible. This works
 through the rest, in batches, from the file the audit left behind.
 
-## Invoking it
+## The argument
+
+The path this run was invoked with is `$ledger`, and it is optional:
 
 ```
-/second-brain-fix                                  # look for the ledger here
-/second-brain-fix ~/notes                          # the notes folder
-/second-brain-fix ~/notes/second-brain-audit.md    # the ledger itself
+/second-brain-fix                                   nothing passed
+/second-brain-fix ~/notes                           a folder
+/second-brain-fix ~/notes/second-brain-audit.md     the file itself
 ```
 
-Resolve the argument before anything else:
+Resolve it before anything else:
 
-| Given | Do |
+| What you were given | Do |
 |---|---|
 | a path to a **file** | that is the ledger. The notes folder is its parent, unless the ledger names a different one |
 | a path to a **folder** | the ledger is `second-brain-audit.md` inside it |
-| **nothing** | look in the current folder, then one level down |
-| **more than one match** | list them with their newest `## Log` dates and ask which |
-| **no match** | stop. Say to run `/second-brain-audit` first, since there is nothing to work from |
+| nothing, so the line above still reads `\$ledger` | look in the current folder, then one level down |
+| **a path that does not exist** | say so and stop. Do not fall back to searching, or a typo silently works on the wrong folder |
+| **more than one match** when searching | list them with their newest `## Log` dates and ask which |
+| **no match** when searching | stop. Say to run `/second-brain-audit` first, since there is nothing to work from |
 
 Never invent a queue from scratch when the ledger is missing. Auditing and fixing in one
 pass is how a bulk write happens against findings nobody read.

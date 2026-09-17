@@ -1,6 +1,8 @@
 ---
 name: second-brain-audit
 description: Audit any second brain, notes folder, or agent memory for facts that have quietly stopped being true, then fix the worst one so it stops recurring. Works on a wiki, a single notes file, daily notes, or a non-markdown tool, and adapts the fix to whichever it finds. Checks every current-sounding claim in whatever the agent loads each session against the freshest evidence, and separates contradicted claims from unsupported ones. Use when an assistant gives an outdated answer, when notes or memory files may be stale, when a vault needs checking for contradictions, or when someone asks how to stop a second brain from rotting, mentions memory rot, or asks about state versus event.
+argument-hint: "[path-to-notes-folder]"
+arguments: [notes]
 ---
 
 # Second Brain Audit
@@ -44,6 +46,11 @@ see and what the fix should be.
 | **One big file** | a single `notes.md` or `CLAUDE.md` | a `## Current State` block at the top |
 | **Daily notes only** | `2026-06-01.md`, and nothing else | **nothing to convert.** A state layer is missing entirely |
 | **Not markdown** | Notion, Apple Notes, a chat assistant's memory | the idea still applies; the tooling does not |
+
+The notes folder this run was invoked with is `$notes`, and it is optional
+(`/second-brain-audit ~/notes`). Use it when it is a real path. When nothing was passed, so the
+line above still reads `\$notes`, use the working directory and confirm it with the user. When it
+is a path that does not exist, say so and stop rather than auditing the wrong folder.
 
 Then establish two things:
 
