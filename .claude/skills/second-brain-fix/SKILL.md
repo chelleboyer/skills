@@ -151,6 +151,11 @@ not markdown do not get converted at all.
 verbatim, at most with a date prepended. Improving the prose is how information disappears
 without anyone noticing, and in a batch nobody is reading closely enough to catch it.
 
+**When a bullet has no date and none can be recovered**, do not invent one and do not quietly
+leave the entry bare. Take the date from the evidence if the bullet cites any, otherwise write
+`(date unknown)` in the date's place. A bare entry reads as an oversight; `(date unknown)` reads
+as the gap it is, and it survives into the next audit as something to ask about.
+
 Two kinds of page to leave alone, and say so rather than converting them:
 
 - **Reference checklists.** Packing lists, hospital-bag lists, standard operating steps. Few
@@ -175,12 +180,41 @@ For each, three outcomes:
 If the user does not answer, leave every one of them exactly as it is. An unanswered question is
 not permission.
 
+### Anything you leave for the owner gets annotated where it lives
+
+A question in your summary reaches one person once. The line stays in the notes and gets read by
+every future session, so **the warning has to be on the line, not only in your report.**
+
+Whenever you leave a line standing because only the owner can resolve it, append the reason to
+that line in place, keeping the original text intact ahead of it:
+
+```markdown
+- **Sam Iwu**: accepted a full-time offer, starting October 2026. UNVERIFIED (fix run
+  2026-09-18): no date and no source anywhere; entities/sam-iwu.md says he is still a
+  contractor. Confirm or delete.
+
+- **Ferro retainer renewal** (2026-09-12): renewed at $6,500/mo through year-end. CONFLICT
+  (fix run 2026-09-18): the 2026-09-10 call set it to $12,000/mo. Nothing sources this line.
+  Ask before quoting either number.
+```
+
+This matters most for a **stale line that is newer than the line you just corrected.** If one key
+says $12,000 dated the 10th and another says $6,500 dated the 12th, an agent reading that page
+takes the newer one and answers $6,500, so correcting the first key changed nothing unless the
+second one carries the warning. Check for that case explicitly after every batch: for each key
+you fixed, look for another key on the same page about the same subject with a later date.
+
+Never delete the line to resolve the conflict, and never pick a value yourself. Annotating is the
+whole move.
+
 ## Step 5: write the results back
 
 After each batch, edit `$audit-results`:
 
 - **Replace** each location's `## Current State` line with its new status. One line per
   location, always. Never a second line.
+- Record every line you annotated and left standing, so the next run can see what is still
+  waiting on the owner rather than re-deriving it.
 - **Append** one entry to `## Log`: the date, which batch, how many lines replaced, how many
   locations converted, and how many unsupported claims are still unanswered.
 
@@ -209,6 +243,8 @@ quotes stale claims verbatim. Either keep that name or keep the file outside the
    near-misses at the end of the batch and let the user decide. Batch work merges by default
    because merging looks like tidying, so this rule needs holding on purpose.
 3. **Never invent a value**, and never delete a claim to make a pile smaller.
+   Anything you leave for the owner carries its reason on the line itself, not only in your
+   summary. A warning that lives in a chat window is the failure this skill exists to fix.
 4. **Never edit or delete a `## Log` entry.** Old and superseded is the point of that section.
 5. **A date is a claim that the value was checked.** A line you only moved keeps its own date.
 6. **Never copy the notes folder as a backup.** Git, or an informed no. Nothing else.
