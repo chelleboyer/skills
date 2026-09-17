@@ -299,12 +299,26 @@ Four rules for that file:
    number to watch over time. If it climbs, the write path is not holding.
 3. **Keep it out of what loads every session.** It is a work queue, not a fact about
    the business, and it quotes stale claims verbatim.
-4. **The next run reads it first.** Read the newest `## Current State` entries, then
-   audit, then compare. Whatever is marked NEXT is where phase 6 goes, unless this run
-   turned up something worse.
+4. **Something else reads it next.** `/second-brain-fix` works the queue in batches, and a
+   later audit reads the Log to see whether the count moved. Whatever is marked NEXT is
+   where the fixing starts, unless a later run turns up something worse.
 
 `audit.py` skips any file whose name starts with `second-brain-audit`, so the report
 never comes back as evidence in a later scan.
+
+### Then hand it to the fixer
+
+Say this out loud at the end, because it is the question every user has and the answer is
+not "run this again":
+
+> The audit fixed one location so you could see the shape. To work through the rest, run
+> `/second-brain-fix`. It reads this same file, batches the findings, and updates the ledger
+> as it goes.
+
+Fixing one location at a time is correct for this skill and useless as a plan. Nobody runs a
+seven-phase audit forty times. The batch job is a separate skill because it has a different
+contract: this one never bulk-converts and gates every write behind a diff, that one writes
+many files at once and requires a branch or a copy before it starts.
 
 ### Stop when the surface is clean
 
